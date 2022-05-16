@@ -1,0 +1,79 @@
+Picotte Doesn't Have Docker, so use Singularity Instead.
+https://proteusmaster.urcf.drexel.edu/urcfwiki/index.php/Singularity#Pull_an_Image
+https://singularity-tutorial.github.io/
+https://singularity-user-docs.readthedocs.io/en/latest/singularity_and_docker.html
+https://github.com/DerrickWood/kraken2
+https://genomics.readthedocs.io/en/latest/ngs-taxonomic-investigation/index.html#kraken2
+https://www.ccb.jhu.edu/software/kraken2/index.shtml?t=downloads
+
+
+$singularity pull docker://staphb/kraken2/
+$ singularity run kraken2_latest.sif
+
+#Get DB for kraken2
+$wget ftp://ftp.ccb.jhu.edu/pub/data/kraken2_dbs/old/minikraken2_v1_8GB_201904.tgz
+
+#Unzip
+$tar -xvzf minikraken2_v1_8GB_201904.tgz
+
+Sigularity> kraken2 
+
+#evols need to be gzipped
+$gzip evol1.sorted.unmapped.R1.fastq
+$gzip evol1.sorted.unmapped.R2.fastq
+
+$kraken2 --use-names --threads 4 --db minikraken2_v1_8GB --fastq-input --report evol1 --gzip-compressed --paired evol1.sorted.unmapped.R1.fastq.gz evol1.sorted.unmapped.R2.fastq.gz > evol1.kraken
+
+#krona to visualize output
+$singularity pull docker://nanozoo/krona/
+$cat evol1.kraken | cut -f 2,3 > evol1.kraken.krona
+#build krona taxonomy
+$ ktUpdateTaxonomy.sh ~/krona/taxonomy
+$ singularity run krona_latest.sif
+Sigularity> ktImportTaxonomy evol1.kraken.krona
+$firefox taxonomy.krona.html
+
+
+#See all available DBs
+$curl ftp://ftp.ccb.jhu.edu/pub/data/kraken2_dbs/
+
+#Get DB for kraken2
+$wget ftp://ftp.ccb.jhu.edu/pub/data/kraken2_dbs/old/minikraken2_v2_8GB_201904.tgz
+$wget ftp://ftp.ccb.jhu.edu/pub/data/kraken2_dbs/16S_Greengenes13.5_20200326.tgz
+$wget ftp://ftp.ccb.jhu.edu/pub/data/kraken2_dbs/16S_RDP11.5_20200326.tgz
+$wget ftp://ftp.ccb.jhu.edu/pub/data/kraken2_dbs/16S_Silva132_20200326.tgz
+$wget ftp://ftp.ccb.jhu.edu/pub/data/kraken2_dbs/16S_Silva138_20200326.tgz
+
+#Unzip all DBs
+
+$kraken2 --use-names --threads 4 --db minikraken2_v2_8GB_201904_UPDATE --fastq-input --report evol1 --gzip-compressed --paired evol1.sorted.unmapped.R1.fastq.gz evol1.sorted.unmapped.R2.fastq.gz > evol1_miniv2.kraken
+$kraken2 --use-names --threads 4 --db 16S_Greengenes_k2db --fastq-input --report evol1 --gzip-compressed --paired evol1.sorted.unmapped.R1.fastq.gz evol1.sorted.unmapped.R2.fastq.gz > evol1_16sGreen.kraken
+$kraken2 --use-names --threads 4 --db 16S_RDP_k2db --fastq-input --report evol1 --gzip-compressed --paired evol1.sorted.unmapped.R1.fastq.gz evol1.sorted.unmapped.R2.fastq.gz > evol1_16sRDP.kraken
+$kraken2 --use-names --threads 4 --db 16S_SILVA132_k2db --fastq-input --report evol1 --gzip-compressed --paired evol1.sorted.unmapped.R1.fastq.gz evol1.sorted.unmapped.R2.fastq.gz > evol1_16s132.kraken
+$kraken2 --use-names --threads 4 --db 16S_SILVA138_k2db --fastq-input --report evol1 --gzip-compressed --paired evol1.sorted.unmapped.R1.fastq.gz evol1.sorted.unmapped.R2.fastq.gz > evol1_16s138.kraken
+
+
+#Trying single .fa file
+$ kraken2 --use-names --threads 4 --db minikraken2_v2_8GB_201904_UPDATE --report example.report.txt COVID_19.fa > example.kraken
+
+
+#Building a DB???
+$kraken2-build --standard --threads 24 --db minikraken2_v2_8GB_201904_UPDATE
+$kraken2-build --standard --threads 24 --db minikraken2_v1_8GB
+
+#Inspect DataBase Content
+$ kraken2-inspect --db minikraken2_v2_8GB_201904_UPDATE | head -5
+
+
+
+#Trail 2
+$cat evol1_miniv2.kraken | cut -f 2,3 > evol1_miniv2.kraken.krona
+Sigularity> ktImportTaxonomy evol1_miniv2.kraken.krona
+
+
+#exmaining krona/taxonomy/taxonomy.tab is a enum file for taxid input to creat pie chart
+#taxid input from evol1.kraken.krona txt file needs to taxid num in taxonomy.tab
+#more bash commands to seperate out the taxids only 
+$cat evol1_miniv2.kraken.krona | cut -f 2 -d '(' | cut -f 2 -d ' ' | cut -f 1 -d ')' > evol1_miniv2_part1
+$cat evol1_miniv2.kraken.krona | cut -f 1 > evol1_miniv2_part2
+$paste evol1_miniv2_part2 evol1_miniv2_part1 > evol1_miniv2_final.kraken.krona
