@@ -4,7 +4,8 @@ This repository is created to store information involved in tutorial 9 of ECES45
 The tutorial is a kraken2 tutorial, obtained at https://genomics.readthedocs.io/en/latest/ngs-taxonomic-investigation/index.html
 
 To emulate results in evol1 and visualize similar to taxonomy.krona, follow the inputs (the lines beginning with a $) in Commands.txt
-  Additionally, to ensure proper display of the krona file, 
+
+Alternatively, the krona file can be visualized using the contents of the taxonomy.krona.html.files folder
 
 The slides of what was presented are available in Tutorial 9.pptx
 
